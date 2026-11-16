@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activities Checklist</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #eef1f5;
+      color: #1f2a44;
+      padding: 32px 16px;
+    }
+
+    .wrapper { max-width: 520px; margin: 0 auto; }
+
+    h1 { font-size: 28px; text-align: center; margin-bottom: 4px; }
+
+    .subtitle {
+      text-align: center;
+      color: #7a8499;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 20px 22px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+      display: flex;
+      flex-direction: column;
+      counter-reset: done total;
+    }
+
+    .card h2 { font-size: 18px; letter-spacing: 0.5px; margin-bottom: 4px; order: -2; }
+
+    .progress { order: -1; font-size: 13px; color: #7a8499; margin-bottom: 12px; }
+    .progress::after { content: counter(done) " of " counter(total) " done"; }
+
+    /* ---------- Add assignment form ---------- */
+    .add-form h2 { order: 0; margin-bottom: 12px; }
+
+    .add-form input,
+    .add-form textarea,
+    .add-form select {
+      width: 100%;
+      font: inherit;
+      font-size: 15px;
+      padding: 10px 12px;
+      border: 1px solid #dde2ea;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      background: #fafbfd;
+      color: #1f2a44;
+    }
+
+    .add-form textarea { resize: vertical; min-height: 70px; }
+
+    .add-form input:focus,
+    .add-form textarea:focus,
+    .add-form select:focus { outline: none; border-color: #3b6ef5; background: #fff; }
+
+    .add-form button {
+      font: inherit;
+      font-weight: 600;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #3b6ef5;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .add-form button:hover { background: #2f5ad1; }
+
+    /* ---------- Checklist items ---------- */
+    .item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 6px;
+      border-bottom: 1px solid #f0f2f6;
+      cursor: pointer;
+      border-radius: 8px;
+      counter-increment: total;
+    }
+
+    .item:last-of-type { border-bottom: none; }
+    .item:hover { background: #f6f8fb; }
+
+    .item input {
+      width: 20px;
+      height: 20px;
+      margin-top: 1px;
+      accent-color: #3b6ef5;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .item input:checked { counter-increment: done; }
+
+    .text { flex: 1; }
+    .title { font-size: 16px; }
+    .desc { font-size: 13px; color: #7a8499; margin-top: 3px; white-space: pre-wrap; }
+
+    .item input:checked + .text .title { text-decoration: line-through; color: #a3abbb; }
+    .item input:checked + .text .desc { color: #c0c6d2; }
+
+    .delete {
+      border: none;
+      background: none;
+      color: #c0c6d2;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+
+    .delete:hover { color: #e5484d; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <h1>Our Activities</h1>
+    <p class="subtitle">Tick off each task as you finish it</p>
+
+    <!-- Form for adding a new assignment -->
+    <form class="card add-form" id="addForm">
+      <h2>Add an assignment</h2>
+      <input id="newTitle" type="text" placeholder="Assignment name (e.g. HUMCOM f5)" required>
+      <textarea id="newDesc" placeholder="Description (optional): due date, instructions, notes..."></textarea>
+      <select id="newSection">
+        <option value="activities">ACTIVITIES</option>
+        <option value="hextudio">HEXTUDIO</option>
+      </select>
+      <button type="submit">+ Add assignment</button>
+    </form>
+
+    <div class="card">
+      <h2>ACTIVITIES</h2>
+      <div id="activities" style="display:contents"></div>
+      <p class="progress"></p>
+    </div>
+
+    <div class="card">
+      <h2>HEXTUDIO</h2>
+      <div id="hextudio" style="display:contents"></div>
+      <p class="progress"></p>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Starting list (edit these if you want) ----------
+    // section: "activities" or "hextudio"
+    const defaultItems = [
+      { section: "activities", title: "humcom lec f1", desc: "", done: false },
+      { section: "activities", title: "HUMCOM 4 activities", desc: "", done: false },
+      { section: "activities", title: "intrcs portfolio", desc: "", done: false },
+      { section: "activities", title: "ARTS KANTA", desc: "", done: false },
+      { section: "activities", title: "LITERA VIDEO", desc: "", done: false },
+      { section: "activities", title: "NSTP VIDEO", desc: "", done: false },
+      { section: "activities", title: "HUMCOM Portfolio", desc: "", done: false },
+      { section: "activities", title: "INTRCS CERT", desc: "", done: false },
+      { section: "activities", title: "HUMCOM CERT", desc: "", done: false },
+      { section: "activities", title: "SOCORN CERT", desc: "", done: false },
+      { section: "activities", title: "LITERA COURSEWORK", desc: "", done: false },
+      { section: "activities", title: "PROGIT PORTFOLIO", desc: "", done: false },
+      { section: "activities", title: "LITERA Coursework", desc: "", done: true },
+      { section: "activities", title: "intrcs film", desc: "", done: true },
+      { section: "activities", title: "humcom f4", desc: "", done: true },
+      { section: "activities", title: "humcom f2", desc: "", done: true },
+      { section: "activities", title: "PROGIT REFLECTION FINAL1", desc: "", done: true },
+      { section: "activities", title: "humcom f1", desc: "", done: true },
+      { section: "activities", title: "humcom f3", desc: "", done: true },
+      { section: "hextudio", title: "CCSD", desc: "", done: false },
+      { section: "hextudio", title: "LIB 1", desc: "", done: false },
+      { section: "hextudio", title: "LIB 2", desc: "", done: false },
+      { section: "hextudio", title: "PASKO", desc: "", done: false }
+    ];
+
+    // ---------- Load saved list (so ticks and new items stay after refresh) ----------
+    const STORAGE_KEY = "activitiesChecklist";
+    let items;
+    try {
+      items = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultItems;
+    } catch (e) {
+      items = defaultItems;
+    }
+
+    function save() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch (e) {}
+    }
+
+    // ---------- Draw the list on the page ----------
+    function render() {
+      document.getElementById("activities").innerHTML = "";
+      document.getElementById("hextudio").innerHTML = "";
+
+      items.forEach(function (item, index) {
+        const label = document.createElement("label");
+        label.className = "item";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = item.done;
+        checkbox.addEventListener("change", function () {
+          item.done = checkbox.checked;
+          save();
+        });
+
+        const text = document.createElement("div");
+        text.className = "text";
+
+        const title = document.createElement("div");
+        title.className = "title";
+        title.textContent = item.title;
+        text.appendChild(title);
+
+        if (item.desc) {
+          const desc = document.createElement("div");
+          desc.className = "desc";
+          desc.textContent = item.desc;
+          text.appendChild(desc);
+        }
+
+        const del = document.createElement("button");
+        del.className = "delete";
+        del.type = "button";
+        del.title = "Delete";
+        del.textContent = "×";
+        del.addEventListener("click", function (e) {
+          e.preventDefault();
+          if (confirm('Delete "' + item.title + '"?')) {
+            items.splice(index, 1);
+            save();
+            render();
+          }
+        });
+
+        label.appendChild(checkbox);
+        label.appendChild(text);
+        label.appendChild(del);
+        document.getElementById(item.section).appendChild(label);
+      });
+    }
+
+    // ---------- Add a new assignment from the form ----------
+    document.getElementById("addForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const title = document.getElementById("newTitle").value.trim();
+      const desc = document.getElementById("newDesc").value.trim();
+      const section = document.getElementById("newSection").value;
+      if (!title) return;
+
+      // New assignments go to the top of their section
+      items.unshift({ section: section, title: title, desc: desc, done: false });
+      save();
+      render();
+      this.reset();
+    });
+
+    render();
+  </script>
+</body>
+</html>
